@@ -4,6 +4,9 @@ version = "0.1.0"
 description = ""
 authors = ["katmai <katmai.mobil@gmail.com>"]
 
+[tool.poetry.scripts]
+tkisowriter = "tkisowriter:main"
+
 [tool.poetry.dependencies]
 python = "^3.7"
 
