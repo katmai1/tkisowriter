@@ -1,38 +1,14 @@
 import sys
-from tkinter import filedialog
-import tkinter as tk
+from tkinter import TclError, filedialog
 import tkinter.ttk as ttk
-import subprocess
-import json
+
+from .devices import DevicesInfo
 
 
-class DevicesInfo:
-    
-    data = None
-
-    def refresh(self):
-        res = subprocess.check_output("lsblk -J --output-all", shell=True).decode("utf-8") 
-        self.data = json.loads(res)
-
-    @property
-    def usb_list(self):
-        res = []
-        if self.data is not None:
-            for d in self.data['blockdevices']:
-                if d['hotplug']:
-                    res.append(d['path'])
-        return res
-
-    def get_info(self, device):
-        if self.data is not None:
-            for d in self.data['blockdevices']:
-                if d['path'] == device:
-                    return d['vendor']
-        return None
-
+# ─── TKINTER WINDOW CLASS ───────────────────────────────────────────────────────
 
 class MainApplication(ttk.Frame):
-    
+
     def __init__(self, master, *args, **kwargs):
         ttk.Frame.__init__(self, master, *args, **kwargs)
         self.master = master
@@ -45,6 +21,7 @@ class MainApplication(ttk.Frame):
         self._run()
    
     def _run(self):
+        ''' Internal function to execute mainloop '''
         try:
             self.master.mainloop()
         except KeyboardInterrupt:
@@ -54,6 +31,7 @@ class MainApplication(ttk.Frame):
             sys.exit()
             
     def configure_gui(self):
+        ''' Define window settings '''
         self.master.title("titulo")
         self.master.geometry("480x280")
         self.master.resizable(False, False)
@@ -63,17 +41,21 @@ class MainApplication(ttk.Frame):
     # ─── WIDGETS ────────────────────────────────────────────────────────────────────
 
     def create_widgets(self):
+        ''' Define all widgets '''
         self.frame_main = ttk.Frame(self.master)
         self.frame_main.pack(fill='both', expand='true', anchor='n', pady=0, ipady=0)
         self.createFrameISO()
         self.createFrameDevices()
+        
+        # TODO: #2 crear boton de grabar
+        
         self.btn_exit = ttk.Button(self.frame_main, text='Exit', command=self.master.destroy)
         self.btn_exit.pack(anchor='s', side='bottom', fill="x", expand="true", pady=10)
 
     def createFrameISO(self):
         ''' Add ISO related labelframe and widgets '''
         self.frame_iso = ttk.Labelframe(self.frame_main, text="ISO")
-        self.frame_iso.pack(anchor='n', side=tk.TOP, fill='x', ipadx='5', ipady='5', padx='5', pady='5')
+        self.frame_iso.pack(anchor='n', side="top", fill='x', ipadx='5', ipady='5', padx='5', pady='5')
         self.btn_select_iso = ttk.Button(self.frame_iso, text="Select ISO...", command=self.onClickSelectISO)
         self.btn_select_iso.pack(side="left")
         self.lb_iso_path = ttk.Label(self.frame_iso, text="No file selected")
@@ -82,7 +64,7 @@ class MainApplication(ttk.Frame):
     def createFrameDevices(self):
         ''' Add Devices related labelframe and widgets '''
         self.frame_devices = ttk.Labelframe(self.frame_main, text="Devices")
-        self.frame_devices.pack(anchor='n', side=tk.TOP, fill='x', ipadx='5', ipady='5', padx='5', pady='5')
+        self.frame_devices.pack(anchor='n', side="top", fill='x', ipadx='5', ipady='5', padx='5', pady='5')
         self.btn_refresh_devices = ttk.Button(self.frame_devices, text="Refresh", command=self.onClickRefreshDevices)
         self.btn_refresh_devices.pack(side="left")
         self.cmb_devices = ttk.Combobox(self.frame_devices, state='readonly')
@@ -104,7 +86,7 @@ class MainApplication(ttk.Frame):
         # hidden files on dialogs...
         try:
             self.master.tk.call('tk_getOpenFile', '-foobarbaz')
-        except tk.TclError:
+        except TclError:
             pass
         self.master.tk.call('set', '::tk::dialog::file::showHiddenBtn', '1')
         self.master.tk.call('set', '::tk::dialog::file::showHiddenVar', '0')
